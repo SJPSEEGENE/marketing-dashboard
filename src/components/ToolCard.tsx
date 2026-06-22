@@ -12,12 +12,12 @@ export function ToolCard({ tool, isAdmin = false, onDelete }: Props) {
 
   return (
     <div className="overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-      <div className="aspect-[4/3] bg-gray-100">
+      <div className="flex aspect-[4/3] items-center justify-center bg-white p-3">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={tool.title}
-            className="h-full w-full object-cover"
+            className="max-h-full max-w-full object-contain"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
@@ -31,23 +31,16 @@ export function ToolCard({ tool, isAdmin = false, onDelete }: Props) {
           {tool.category}
         </span>
 
-        <h3 className="text-lg font-bold text-gray-900">
-          {tool.title}
-        </h3>
+        <h3 className="text-lg font-bold text-gray-900">{tool.title}</h3>
 
         {tool.description && (
-          <p className="line-clamp-2 text-sm text-gray-600">
-            {tool.description}
-          </p>
+          <p className="line-clamp-2 text-sm text-gray-600">{tool.description}</p>
         )}
 
         {tool.keywords?.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {tool.keywords.map((keyword: string) => (
-              <span
-                key={keyword}
-                className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600"
-              >
+              <span key={keyword} className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">
                 #{keyword}
               </span>
             ))}
@@ -63,11 +56,7 @@ export function ToolCard({ tool, isAdmin = false, onDelete }: Props) {
           </Link>
 
           {tool.file_url && (
-            <a
-              href={tool.file_url}
-              download
-              className="rounded-lg border px-3 py-2 text-gray-700 hover:bg-gray-50"
-            >
+            <a href={tool.file_url} download className="rounded-lg border px-3 py-2 text-gray-700 hover:bg-gray-50">
               <Download size={16} />
             </a>
           )}

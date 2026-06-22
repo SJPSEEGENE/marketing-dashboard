@@ -15,6 +15,7 @@ export default function ToolDetailPage() {
   const [files, setFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [downloading, setDownloading] = useState(false);
 
@@ -50,10 +51,6 @@ export default function ToolDetailPage() {
     );
   }
 
-  function getSelectedFiles() {
-    return files.filter((file) => selectedIds.includes(file.id));
-  }
-
   async function imageToPdfDownload(file: any) {
     const image = new Image();
     image.crossOrigin = 'anonymous';
@@ -71,13 +68,24 @@ export default function ToolDetailPage() {
     });
 
     pdf.addImage(image, 'JPEG', 0, 0, image.width, image.height);
+    pdf.save(`${file.file_label || file.file_name || 'marketing-tool'}.pdf`);
+  }
 
-    const label = file.file_label || file.file_name || 'marketing-tool';
-    pdf.save(`${label}.pdf`);
+  async function downloadFile(file: any) {
+    if (file.file_type === 'image') {
+      await imageToPdfDownload(file);
+      return;
+    }
+
+    const link = document.createElement('a');
+    link.href = file.file_url;
+    link.download = file.file_name || 'download.pdf';
+    link.target = '_blank';
+    link.click();
   }
 
   async function downloadSelectedAsPdf() {
-    const selectedFiles = getSelectedFiles();
+    const selectedFiles = files.filter((file) => selectedIds.includes(file.id));
 
     if (selectedFiles.length === 0) {
       alert('다운로드할 자료를 선택하세요.');
@@ -88,11 +96,7 @@ export default function ToolDetailPage() {
 
     try {
       for (const file of selectedFiles) {
-        if (file.file_type === 'image') {
-          await imageToPdfDownload(file);
-        } else {
-          window.open(file.file_url, '_blank');
-        }
+        await downloadFile(file);
       }
     } finally {
       setDownloading(false);
@@ -110,7 +114,7 @@ export default function ToolDetailPage() {
   if (!tool) {
     return (
       <main className="mx-auto max-w-6xl px-6 py-10">
-        <Link href="/" className="text-sm font-semibold text-blue-700">
+        <Link href="/" className="text-sm font-semibold text-[#B5121B]">
           ← 목록으로
         </Link>
         <p className="mt-8 text-gray-600">자료를 찾을 수 없습니다.</p>
@@ -120,35 +124,28 @@ export default function ToolDetailPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
-      <Link href="/" className="text-sm font-semibold text-blue-700">
+      <Link href="/" className="text-sm font-semibold text-[#B5121B]">
         ← 목록으로
       </Link>
 
       <section className="mt-5 rounded-2xl border bg-white p-6 shadow-sm">
-        <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+        <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-[#B5121B]">
           {tool.category}
         </span>
 
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">
-          {tool.title}
-        </h1>
+        <h1 className="mt-4 text-3xl font-bold text-gray-900">{tool.title}</h1>
 
-        {tool.description && (
-          <p className="mt-3 text-gray-600">{tool.description}</p>
-        )}
+        {tool.description && <p className="mt-3 text-gray-600">{tool.description}</p>}
       </section>
 
       <section className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
         <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-900">
-              {tool.category === '검사홍보'
-                ? '제공 가능한 마케팅 툴'
-                : '세부 미리보기'}
+              {tool.category === '검사홍보' ? '제공 가능한 마케팅 툴' : '세부 미리보기'}
             </h2>
-
             <p className="mt-1 text-sm text-gray-500">
-              필요한 자료를 선택하여 PDF 형식으로 다운로드할 수 있습니다.
+              필요한 자료를 선택하여 다운로드할 수 있습니다.
             </p>
           </div>
 
@@ -156,10 +153,10 @@ export default function ToolDetailPage() {
             type="button"
             onClick={downloadSelectedAsPdf}
             disabled={downloading}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#B5121B] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
             <Download size={16} />
-            {downloading ? '다운로드 중...' : '선택 자료 PDF 다운로드'}
+            {downloading ? '다운로드 중...' : '선택 자료 다운로드'}
           </button>
         </div>
 
@@ -181,14 +178,11 @@ export default function ToolDetailPage() {
                 <div
                   key={file.id}
                   className={`overflow-hidden rounded-xl border bg-gray-50 ${
-                    checked ? 'ring-2 ring-blue-600' : ''
+                    checked ? 'ring-2 ring-[#B5121B]' : ''
                   }`}
                 >
-                  <div className="flex items-center justify-between border-b bg-slate-900 px-3 py-2">
-                    <p className="truncate text-sm font-semibold text-white">
-                      {label}
-                    </p>
-
+                  <div className="flex items-center justify-between border-b bg-[#B5121B] px-3 py-2">
+                    <p className="truncate text-sm font-semibold text-white">{label}</p>
                     <input
                       type="checkbox"
                       checked={checked}
@@ -196,36 +190,46 @@ export default function ToolDetailPage() {
                     />
                   </div>
 
-                  <div className="flex h-48 items-center justify-center bg-white">
+                  <div className="flex h-52 items-center justify-center bg-white p-2">
                     {file.file_type === 'image' ? (
                       <img
                         src={file.file_url}
                         alt={file.file_name}
                         onClick={() => setSelectedImage(file.file_url)}
-                        className="max-h-44 max-w-full cursor-zoom-in object-contain transition hover:scale-105"
+                        className="max-h-full max-w-full cursor-zoom-in object-contain transition hover:scale-105"
                       />
                     ) : (
-                      <div className="px-4 text-center text-sm text-gray-600">
-                        PDF 파일
-                        <br />
-                        {file.file_name}
-                      </div>
+                      <iframe
+                        src={`${file.file_url}#toolbar=0&navpanes=0&scrollbar=0`}
+                        className="h-full w-full cursor-zoom-in rounded border"
+                        onClick={() => setSelectedPdf(file.file_url)}
+                      />
                     )}
                   </div>
 
                   <div className="border-t bg-white p-3">
-                    <p className="truncate text-xs text-gray-500">
-                      {file.file_name}
-                    </p>
+                    <p className="truncate text-xs text-gray-500">{file.file_name}</p>
 
-                    <button
-                      type="button"
-                      onClick={() => imageToPdfDownload(file)}
-                      className="mt-3 inline-flex w-full items-center justify-center gap-1 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white"
-                    >
-                      <Download size={13} />
-                      PDF 다운로드
-                    </button>
+                    <div className="mt-3 flex gap-2">
+                      {file.file_type !== 'image' && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPdf(file.file_url)}
+                          className="flex-1 rounded-lg border px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                        >
+                          크게보기
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => downloadFile(file)}
+                        className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#B5121B] px-3 py-2 text-xs font-semibold text-white"
+                      >
+                        <Download size={13} />
+                        다운로드
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -235,9 +239,7 @@ export default function ToolDetailPage() {
       </section>
 
       <section className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-900">
-          마케팅 툴 설명
-        </h2>
+        <h2 className="text-xl font-bold text-gray-900">마케팅 툴 설명</h2>
 
         <div className="mt-4 rounded-xl bg-gray-50 p-5 text-sm leading-6 text-gray-600">
           {tool.description ? (
@@ -274,6 +276,31 @@ export default function ToolDetailPage() {
               className="max-h-[90vh] max-w-[90vw] rounded-lg bg-white object-contain"
               onClick={(e) => e.stopPropagation()}
             />
+          </div>
+        </div>
+      )}
+
+      {selectedPdf && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
+          onClick={() => setSelectedPdf(null)}
+        >
+          <div
+            className="relative h-[90vh] w-[90vw] overflow-hidden rounded-xl bg-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <p className="font-semibold text-gray-900">PDF 미리보기</p>
+              <button
+                type="button"
+                onClick={() => setSelectedPdf(null)}
+                className="rounded-full bg-slate-100 px-3 py-1 text-sm font-bold text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <iframe src={selectedPdf} className="h-[calc(90vh-52px)] w-full" />
           </div>
         </div>
       )}
