@@ -11,7 +11,7 @@ export function ToolCard({ tool, isAdmin = false, onDelete }: Props) {
   const imageUrl = tool.thumbnail_url || tool.file_url;
 
   return (
-    <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
       <div className="aspect-[4/3] bg-gray-100">
         {imageUrl ? (
           <img
@@ -27,7 +27,7 @@ export function ToolCard({ tool, isAdmin = false, onDelete }: Props) {
       </div>
 
       <div className="space-y-3 p-4">
-        <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+        <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-[#B5121B]">
           {tool.category}
         </span>
 
@@ -57,7 +57,7 @@ export function ToolCard({ tool, isAdmin = false, onDelete }: Props) {
         <div className="flex gap-2">
           <Link
             href={`/tools/${tool.id}`}
-            className="flex-1 rounded-lg bg-slate-900 px-4 py-2 text-center text-sm font-semibold text-white"
+            className="flex-1 rounded-lg bg-[#B5121B] px-4 py-2 text-center text-sm font-semibold text-white hover:bg-[#8F1118]"
           >
             상세 보기
           </Link>
@@ -66,7 +66,7 @@ export function ToolCard({ tool, isAdmin = false, onDelete }: Props) {
             <a
               href={tool.file_url}
               download
-              className="rounded-lg border px-3 py-2 text-gray-700"
+              className="rounded-lg border px-3 py-2 text-gray-700 hover:bg-gray-50"
             >
               <Download size={16} />
             </a>

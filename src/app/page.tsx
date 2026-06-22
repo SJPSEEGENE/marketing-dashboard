@@ -86,46 +86,58 @@ export default function HomePage() {
       <Header />
 
       <section className="mx-auto max-w-6xl px-4 py-8">
-        <div className="mb-6 rounded-2xl bg-slate-900 p-7 text-white">
-          <p className="mb-2 text-sm font-semibold text-blue-200">
-            SEEGENE MEDICAL FOUNDATION
-          </p>
+        <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#B5121B] via-[#A31119] to-[#7F0E15] p-7 text-white shadow-lg">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center">
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-white p-3 shadow-md">
+              <img
+                src="/logo.png"
+                alt="씨젠의료재단 로고"
+                className="h-full w-full object-contain"
+              />
+            </div>
 
-          <h2 className="text-3xl font-bold">
-            씨젠의료재단 학술·마케팅 지원 플랫폼
-          </h2>
+            <div>
+              <p className="mb-2 text-sm font-semibold text-red-100">
+                SEEGENE MEDICAL FOUNDATION
+              </p>
 
-          <p className="mt-3 text-sm leading-6 text-slate-300">
-            씨젠의료재단에서 제공하는 다양한 학술·마케팅 지원 자료를
-            확인하실 수 있습니다.
-          </p>
+              <h2 className="text-3xl font-bold">
+                씨젠의료재단 학술·마케팅 지원 플랫폼
+              </h2>
+
+              <p className="mt-3 text-sm leading-6 text-red-100">
+                씨젠의료재단에서 제공하는 다양한 학술·마케팅 지원 자료를
+                확인하실 수 있습니다.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">전체 자료</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
+            <p className="mt-1 text-2xl font-bold text-[#B5121B]">
               {tools.length}
             </p>
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">검사홍보</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
+            <p className="mt-1 text-2xl font-bold text-[#B5121B]">
               {categoryCounts['검사홍보'] || 0}
             </p>
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">학술임상</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
+            <p className="mt-1 text-2xl font-bold text-[#B5121B]">
               {categoryCounts['학술임상'] || 0}
             </p>
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow-sm">
             <p className="text-sm text-slate-500">영업제안</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
+            <p className="mt-1 text-2xl font-bold text-[#B5121B]">
               {categoryCounts['영업제안'] || 0}
             </p>
           </div>
@@ -154,8 +166,8 @@ export default function HomePage() {
               onClick={() => setCategory('')}
               className={`rounded-full px-4 py-2 text-sm font-semibold ${
                 category === ''
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-[#B5121B] text-white'
+                  : 'bg-red-50 text-[#B5121B] hover:bg-red-100'
               }`}
             >
               전체 {tools.length}
@@ -168,8 +180,8 @@ export default function HomePage() {
                 onClick={() => setCategory(item)}
                 className={`rounded-full px-4 py-2 text-sm font-semibold ${
                   category === item
-                    ? 'bg-blue-700 text-white'
-                    : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                    ? 'bg-[#B5121B] text-white'
+                    : 'bg-red-50 text-[#B5121B] hover:bg-red-100'
                 }`}
               >
                 {item} {categoryCounts[item] || 0}
@@ -180,14 +192,18 @@ export default function HomePage() {
 
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-slate-500">
-            총 <span className="font-semibold text-slate-900">{filtered.length}</span>개 자료가 검색되었습니다.
+            총{' '}
+            <span className="font-semibold text-slate-900">
+              {filtered.length}
+            </span>
+            개 자료가 검색되었습니다.
           </p>
 
           {category && (
             <button
               type="button"
               onClick={() => setCategory('')}
-              className="text-sm font-semibold text-blue-700"
+              className="text-sm font-semibold text-[#B5121B]"
             >
               필터 초기화
             </button>
