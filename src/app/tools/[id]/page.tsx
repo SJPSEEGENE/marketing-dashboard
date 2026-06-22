@@ -200,19 +200,24 @@ export default function ToolDetailPage() {
                     />
                   </div>
 
-                  <div className="flex h-32 items-center justify-center bg-white p-2 sm:h-36 md:h-40">
+                  <div className="relative flex h-44 items-center justify-center overflow-hidden bg-gray-50">
                     {file.file_type === 'image' ? (
                       <img
                         src={file.file_url}
                         alt={file.file_name}
                         onClick={() => setSelectedImage(file.file_url)}
-                        className="max-h-full max-w-full cursor-zoom-in object-contain"
+                        className="h-full w-full cursor-zoom-in object-contain p-2"
                       />
                     ) : (
-                      <iframe
-                        src={`${file.file_url}#toolbar=0&navpanes=0&scrollbar=0`}
-                        className="h-full w-full rounded border"
-                      />
+                      <div
+                        className="flex h-full w-full cursor-zoom-in items-center justify-center overflow-hidden"
+                        onClick={() => setSelectedPdf(file.file_url)}
+                      >
+                        <iframe
+                          src={`${file.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                          className="pointer-events-none h-[520px] w-[360px] scale-[0.34] origin-center rounded border bg-white"
+                        />
+                      </div>
                     )}
                   </div>
 
