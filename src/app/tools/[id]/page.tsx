@@ -105,7 +105,7 @@ export default function ToolDetailPage() {
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-6xl px-4 py-8">
         <p className="text-gray-500">자료를 불러오는 중입니다.</p>
       </main>
     );
@@ -113,7 +113,7 @@ export default function ToolDetailPage() {
 
   if (!tool) {
     return (
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-6xl px-4 py-8">
         <Link href="/" className="text-sm font-semibold text-[#B5121B]">
           ← 목록으로
         </Link>
@@ -123,28 +123,36 @@ export default function ToolDetailPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-8">
+    <main className="mx-auto max-w-6xl px-4 py-6">
       <Link href="/" className="text-sm font-semibold text-[#B5121B]">
         ← 목록으로
       </Link>
 
-      <section className="mt-5 rounded-2xl border bg-white p-6 shadow-sm">
+      <section className="mt-4 rounded-2xl border bg-white p-5 shadow-sm">
         <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-[#B5121B]">
           {tool.category}
         </span>
 
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">{tool.title}</h1>
+        <h1 className="mt-3 text-2xl font-bold text-gray-900 md:text-3xl">
+          {tool.title}
+        </h1>
 
-        {tool.description && <p className="mt-3 text-gray-600">{tool.description}</p>}
+        {tool.description && (
+          <p className="mt-2 text-sm text-gray-600 md:text-base">
+            {tool.description}
+          </p>
+        )}
       </section>
 
-      <section className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
-        <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <section className="mt-5 rounded-2xl border bg-white p-4 shadow-sm md:p-5">
+        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">
-              {tool.category === '검사홍보' ? '제공 가능한 마케팅 툴' : '세부 미리보기'}
+            <h2 className="text-lg font-bold text-gray-900 md:text-xl">
+              {tool.category === '검사홍보'
+                ? '제공 가능한 마케팅 툴'
+                : '세부 미리보기'}
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-xs text-gray-500 md:text-sm">
               필요한 자료를 선택하여 다운로드할 수 있습니다.
             </p>
           </div>
@@ -165,7 +173,7 @@ export default function ToolDetailPage() {
             등록된 세부 파일이 없습니다.
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {files.map((file, index) => {
               const label =
                 tool.category === '검사홍보'
@@ -177,12 +185,14 @@ export default function ToolDetailPage() {
               return (
                 <div
                   key={file.id}
-                  className={`overflow-hidden rounded-xl border bg-gray-50 ${
+                  className={`overflow-hidden rounded-xl border bg-white ${
                     checked ? 'ring-2 ring-[#B5121B]' : ''
                   }`}
                 >
-                  <div className="flex items-center justify-between border-b bg-[#B5121B] px-3 py-2">
-                    <p className="truncate text-sm font-semibold text-white">{label}</p>
+                  <div className="flex items-center justify-between bg-[#B5121B] px-2 py-2">
+                    <p className="truncate text-xs font-semibold text-white md:text-sm">
+                      {label}
+                    </p>
                     <input
                       type="checkbox"
                       checked={checked}
@@ -190,32 +200,33 @@ export default function ToolDetailPage() {
                     />
                   </div>
 
-                  <div className="flex h-52 items-center justify-center bg-white p-2">
+                  <div className="flex h-32 items-center justify-center bg-white p-2 sm:h-36 md:h-40">
                     {file.file_type === 'image' ? (
                       <img
                         src={file.file_url}
                         alt={file.file_name}
                         onClick={() => setSelectedImage(file.file_url)}
-                        className="max-h-full max-w-full cursor-zoom-in object-contain transition hover:scale-105"
+                        className="max-h-full max-w-full cursor-zoom-in object-contain"
                       />
                     ) : (
                       <iframe
                         src={`${file.file_url}#toolbar=0&navpanes=0&scrollbar=0`}
-                        className="h-full w-full cursor-zoom-in rounded border"
-                        onClick={() => setSelectedPdf(file.file_url)}
+                        className="h-full w-full rounded border"
                       />
                     )}
                   </div>
 
-                  <div className="border-t bg-white p-3">
-                    <p className="truncate text-xs text-gray-500">{file.file_name}</p>
+                  <div className="border-t bg-white p-2">
+                    <p className="truncate text-[11px] text-gray-500">
+                      {file.file_name}
+                    </p>
 
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-2 flex gap-1">
                       {file.file_type !== 'image' && (
                         <button
                           type="button"
                           onClick={() => setSelectedPdf(file.file_url)}
-                          className="flex-1 rounded-lg border px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                          className="flex-1 rounded-md border px-2 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
                         >
                           크게보기
                         </button>
@@ -224,9 +235,9 @@ export default function ToolDetailPage() {
                       <button
                         type="button"
                         onClick={() => downloadFile(file)}
-                        className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-[#B5121B] px-3 py-2 text-xs font-semibold text-white"
+                        className="inline-flex flex-1 items-center justify-center gap-1 rounded-md bg-[#B5121B] px-2 py-1.5 text-[11px] font-semibold text-white"
                       >
-                        <Download size={13} />
+                        <Download size={12} />
                         다운로드
                       </button>
                     </div>
@@ -238,10 +249,12 @@ export default function ToolDetailPage() {
         )}
       </section>
 
-      <section className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-900">마케팅 툴 설명</h2>
+      <section className="mt-5 rounded-2xl border bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-bold text-gray-900 md:text-xl">
+          마케팅 툴 설명
+        </h2>
 
-        <div className="mt-4 rounded-xl bg-gray-50 p-5 text-sm leading-6 text-gray-600">
+        <div className="mt-3 rounded-xl bg-gray-50 p-4 text-sm leading-6 text-gray-600">
           {tool.description ? (
             <p>{tool.description}</p>
           ) : (
@@ -255,7 +268,7 @@ export default function ToolDetailPage() {
 
       {selectedImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative max-h-[95vh] max-w-[95vw]">
@@ -282,11 +295,11 @@ export default function ToolDetailPage() {
 
       {selectedPdf && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
           onClick={() => setSelectedPdf(null)}
         >
           <div
-            className="relative h-[90vh] w-[90vw] overflow-hidden rounded-xl bg-white"
+            className="relative h-[88vh] w-[94vw] overflow-hidden rounded-xl bg-white"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b px-4 py-3">
@@ -300,7 +313,10 @@ export default function ToolDetailPage() {
               </button>
             </div>
 
-            <iframe src={selectedPdf} className="h-[calc(90vh-52px)] w-full" />
+            <iframe
+              src={selectedPdf}
+              className="h-[calc(88vh-52px)] w-full"
+            />
           </div>
         </div>
       )}
