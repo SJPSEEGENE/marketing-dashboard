@@ -82,10 +82,10 @@ export default function HomePage() {
   }, [tools, query, category, sortType]);
 
   return (
-    <main>
+    <main className="min-h-screen bg-slate-50">
       <Header />
 
-      <section className="mx-auto max-w-6xl px-4 py-8">
+      <section className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#B5121B] via-[#A31119] to-[#7F0E15] p-7 text-white shadow-lg">
           <div className="flex flex-col gap-5 md:flex-row md:items-center">
             <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-white p-3 shadow-md">
@@ -222,11 +222,28 @@ export default function HomePage() {
           </p>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filtered.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} />
+            <ToolCard key={tool.id} tool={tool} compact />
           ))}
         </div>
+
+        <footer className="mt-10 rounded-2xl border bg-white p-5 text-center text-sm text-slate-600 shadow-sm">
+          <p className="font-semibold text-slate-800">
+            본 플랫폼은 씨젠의료재단 학술기획팀에서 제작·운영합니다.
+          </p>
+
+          <p className="mt-2">
+            학술문의 :{' '}
+            <span className="font-semibold text-[#B5121B]">
+              1566-6500
+            </span>
+          </p>
+
+          <p className="mt-2 text-xs text-slate-400">
+            © Seegene Medical Foundation Academic Planning Team
+          </p>
+        </footer>
       </section>
     </main>
   );

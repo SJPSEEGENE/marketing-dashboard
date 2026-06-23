@@ -3,8 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Download } from 'lucide-react';
-import { jsPDF } from 'jspdf';
 import { supabase } from '@/lib/supabase';
 
 export default function ToolDetailPage() {
@@ -16,24 +14,32 @@ export default function ToolDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       if (!id) return;
 
-      const { data: toolData } = await supabase
+      const { data: toolData, error: toolError } = await supabase
         .from('marketing_tools')
         .select('*')
         .eq('id', id)
         .single();
 
-      const { data: fileData } = await supabase
+      if (toolError) {
+        console.error(toolError);
+        setLoading(false);
+        return;
+      }
+
+      const { data: fileData, error: fileError } = await supabase
         .from('marketing_tool_files')
         .select('*')
         .eq('tool_id', id)
         .order('sort_order', { ascending: true });
+
+      if (fileError) {
+        console.error(fileError);
+      }
 
       setTool(toolData);
       setFiles(fileData || []);
@@ -42,66 +48,6 @@ export default function ToolDetailPage() {
 
     fetchData();
   }, [id]);
-
-  function toggleSelect(fileId: string) {
-    setSelectedIds((prev) =>
-      prev.includes(fileId)
-        ? prev.filter((id) => id !== fileId)
-        : [...prev, fileId]
-    );
-  }
-
-  async function imageToPdfDownload(file: any) {
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    image.src = file.file_url;
-
-    await new Promise((resolve, reject) => {
-      image.onload = resolve;
-      image.onerror = reject;
-    });
-
-    const pdf = new jsPDF({
-      orientation: image.width > image.height ? 'landscape' : 'portrait',
-      unit: 'px',
-      format: [image.width, image.height]
-    });
-
-    pdf.addImage(image, 'JPEG', 0, 0, image.width, image.height);
-    pdf.save(`${file.file_label || file.file_name || 'marketing-tool'}.pdf`);
-  }
-
-  async function downloadFile(file: any) {
-    if (file.file_type === 'image') {
-      await imageToPdfDownload(file);
-      return;
-    }
-
-    const link = document.createElement('a');
-    link.href = file.file_url;
-    link.download = file.file_name || 'download.pdf';
-    link.target = '_blank';
-    link.click();
-  }
-
-  async function downloadSelectedAsPdf() {
-    const selectedFiles = files.filter((file) => selectedIds.includes(file.id));
-
-    if (selectedFiles.length === 0) {
-      alert('다운로드할 자료를 선택하세요.');
-      return;
-    }
-
-    setDownloading(true);
-
-    try {
-      for (const file of selectedFiles) {
-        await downloadFile(file);
-      }
-    } finally {
-      setDownloading(false);
-    }
-  }
 
   if (loading) {
     return (
@@ -145,27 +91,16 @@ export default function ToolDetailPage() {
       </section>
 
       <section className="mt-5 rounded-2xl border bg-white p-4 shadow-sm md:p-5">
-        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 md:text-xl">
-              {tool.category === '검사홍보'
-                ? '제공 가능한 마케팅 툴'
-                : '세부 미리보기'}
-            </h2>
-            <p className="mt-1 text-xs text-gray-500 md:text-sm">
-              필요한 자료를 선택하여 다운로드할 수 있습니다.
-            </p>
-          </div>
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-gray-900 md:text-xl">
+            {tool.category === '검사홍보'
+              ? '제공 가능한 마케팅 툴'
+              : '세부 미리보기'}
+          </h2>
 
-          <button
-            type="button"
-            onClick={downloadSelectedAsPdf}
-            disabled={downloading}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#B5121B] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            <Download size={16} />
-            {downloading ? '다운로드 중...' : '선택 자료 다운로드'}
-          </button>
+          <p className="mt-1 text-xs text-gray-500 md:text-sm">
+            등록된 자료를 미리보기 형태로 확인할 수 있습니다.
+          </p>
         </div>
 
         {files.length === 0 ? (
@@ -180,44 +115,38 @@ export default function ToolDetailPage() {
                   ? file.file_label || '기타'
                   : `세부 자료 ${index + 1}`;
 
-              const checked = selectedIds.includes(file.id);
-
               return (
                 <div
                   key={file.id}
-                  className={`overflow-hidden rounded-xl border bg-white ${
-                    checked ? 'ring-2 ring-[#B5121B]' : ''
-                  }`}
+                  className="overflow-hidden rounded-xl border bg-white"
                 >
-                  <div className="flex items-center justify-between bg-[#B5121B] px-2 py-2">
+                  <div className="bg-[#B5121B] px-2 py-2">
                     <p className="truncate text-xs font-semibold text-white md:text-sm">
                       {label}
                     </p>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleSelect(file.id)}
-                    />
                   </div>
 
-                  <div className="relative flex h-44 items-center justify-center overflow-hidden bg-gray-50">
+                  <div
+                    className="relative flex h-44 cursor-zoom-in items-center justify-center overflow-hidden bg-gray-50"
+                    onClick={() => {
+                      if (file.file_type === 'image') {
+                        setSelectedImage(file.file_url);
+                      } else {
+                        setSelectedPdf(file.file_url);
+                      }
+                    }}
+                  >
                     {file.file_type === 'image' ? (
                       <img
                         src={file.file_url}
                         alt={file.file_name}
-                        onClick={() => setSelectedImage(file.file_url)}
-                        className="h-full w-full cursor-zoom-in object-contain p-2"
+                        className="h-full w-full object-contain p-2"
                       />
                     ) : (
-                      <div
-                        className="flex h-full w-full cursor-zoom-in items-center justify-center overflow-hidden"
-                        onClick={() => setSelectedPdf(file.file_url)}
-                      >
-                        <iframe
-                          src={`${file.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
-                          className="pointer-events-none h-[520px] w-[360px] scale-[0.34] origin-center rounded border bg-white"
-                        />
-                      </div>
+                      <iframe
+                        src={`${file.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                        className="pointer-events-none h-[520px] w-[360px] scale-[0.34] origin-center rounded border bg-white"
+                      />
                     )}
                   </div>
 
@@ -226,26 +155,19 @@ export default function ToolDetailPage() {
                       {file.file_name}
                     </p>
 
-                    <div className="mt-2 flex gap-1">
-                      {file.file_type !== 'image' && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPdf(file.file_url)}
-                          className="flex-1 rounded-md border px-2 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
-                        >
-                          크게보기
-                        </button>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => downloadFile(file)}
-                        className="inline-flex flex-1 items-center justify-center gap-1 rounded-md bg-[#B5121B] px-2 py-1.5 text-[11px] font-semibold text-white"
-                      >
-                        <Download size={12} />
-                        다운로드
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (file.file_type === 'image') {
+                          setSelectedImage(file.file_url);
+                        } else {
+                          setSelectedPdf(file.file_url);
+                        }
+                      }}
+                      className="mt-2 w-full rounded-md border px-2 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      크게보기
+                    </button>
                   </div>
                 </div>
               );
@@ -309,6 +231,7 @@ export default function ToolDetailPage() {
           >
             <div className="flex items-center justify-between border-b px-4 py-3">
               <p className="font-semibold text-gray-900">PDF 미리보기</p>
+
               <button
                 type="button"
                 onClick={() => setSelectedPdf(null)}
@@ -319,7 +242,7 @@ export default function ToolDetailPage() {
             </div>
 
             <iframe
-              src={selectedPdf}
+              src={`${selectedPdf}#toolbar=0&navpanes=0`}
               className="h-[calc(88vh-52px)] w-full"
             />
           </div>
