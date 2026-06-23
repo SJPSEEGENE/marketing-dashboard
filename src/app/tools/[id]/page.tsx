@@ -4,10 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-
-function getPdfViewerUrl(url: string) {
-  return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(url)}`;
-}
+import { PdfPreview } from '@/components/PdfPreview';
 
 export default function ToolDetailPage() {
   const params = useParams();
@@ -119,6 +116,8 @@ export default function ToolDetailPage() {
                   ? file.file_label || '기타'
                   : `세부 자료 ${index + 1}`;
 
+              const isImage = file.file_type === 'image';
+
               return (
                 <div
                   key={file.id}
@@ -133,24 +132,21 @@ export default function ToolDetailPage() {
                   <div
                     className="relative flex h-44 cursor-zoom-in items-center justify-center overflow-hidden bg-gray-50"
                     onClick={() => {
-                      if (file.file_type === 'image') {
+                      if (isImage) {
                         setSelectedImage(file.file_url);
                       } else {
                         setSelectedPdf(file.file_url);
                       }
                     }}
                   >
-                    {file.file_type === 'image' ? (
+                    {isImage ? (
                       <img
                         src={file.file_url}
                         alt={file.file_name}
                         className="h-full w-full object-contain p-2"
                       />
                     ) : (
-                      <iframe
-                        src={getPdfViewerUrl(file.file_url)}
-                        className="pointer-events-none h-[520px] w-[360px] scale-[0.34] origin-center rounded border bg-white"
-                      />
+                      <PdfPreview url={file.file_url} mode="thumbnail" />
                     )}
                   </div>
 
@@ -162,7 +158,7 @@ export default function ToolDetailPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        if (file.file_type === 'image') {
+                        if (isImage) {
                           setSelectedImage(file.file_url);
                         } else {
                           setSelectedPdf(file.file_url);
@@ -245,10 +241,9 @@ export default function ToolDetailPage() {
               </button>
             </div>
 
-            <iframe
-              src={getPdfViewerUrl(selectedPdf)}
-              className="h-[calc(88vh-52px)] w-full"
-            />
+            <div className="h-[calc(88vh-52px)] overflow-y-auto bg-slate-100 p-3">
+              <PdfPreview url={selectedPdf} mode="full" />
+            </div>
           </div>
         </div>
       )}
