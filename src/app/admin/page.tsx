@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { LogOut, Pencil, Search, Trash2 } from 'lucide-react';
+import { Home, LogOut, Pencil, Search, Trash2 } from 'lucide-react';
 import { AdminForm } from '@/components/AdminForm';
 import { isAdminLoggedIn, logoutAdmin } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -127,7 +127,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">관리자 화면</h1>
@@ -136,26 +136,34 @@ export default function AdminPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-semibold"
-        >
-          <LogOut className="h-4 w-4" />
-          로그아웃
-        </button>
+        <div className="flex gap-2">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
+          >
+            <Home className="h-4 w-4" />
+            대시보드 보기
+          </Link>
+
+          <button
+            onClick={handleLogout}
+            className="inline-flex items-center gap-2 rounded-lg border bg-white px-4 py-2 text-sm font-semibold"
+          >
+            <LogOut className="h-4 w-4" />
+            로그아웃
+          </button>
+        </div>
       </div>
 
       <section className="grid gap-6 lg:grid-cols-[420px_1fr]">
         <AdminForm onSaved={load} />
 
         <div className="rounded-2xl border bg-white p-5 shadow-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold">등록 자료</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                총 {tools.length}개 중 {filteredTools.length}개 표시
-              </p>
-            </div>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold">등록 자료</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              총 {tools.length}개 중 {filteredTools.length}개 표시
+            </p>
           </div>
 
           <div className="mb-4 flex items-center gap-2 rounded-lg border bg-white px-3 py-2">
@@ -194,7 +202,7 @@ export default function AdminPage() {
                         <img
                           src={imageUrl}
                           alt={tool.title}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-contain"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
