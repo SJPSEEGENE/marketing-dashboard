@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Header } from '@/components/Header';
 import { SearchBar } from '@/components/SearchBar';
 import { ToolCard } from '@/components/ToolCard';
-import { CATEGORIES } from '@/lib/constants';
+import { getActiveCategories, type Category } from '@/lib/categories';
 import { supabase } from '@/lib/supabase';
 import type { MarketingTool } from '@/types/tool';
 
@@ -12,6 +12,7 @@ type SortType = 'latest' | 'oldest' | 'title';
 
 export default function HomePage() {
   const [tools, setTools] = useState<MarketingTool[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
   const [sortType, setSortType] = useState<SortType>('latest');
@@ -30,6 +31,9 @@ export default function HomePage() {
         return;
       }
 
+      const categoryList = await getActiveCategories();
+
+      setCategories(categoryList);
       setTools((data || []) as MarketingTool[]);
       setLoading(false);
     }
@@ -39,8 +43,9 @@ export default function HomePage() {
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    CATEGORIES.forEach((item) => {
-      counts[item] = 0;
+
+    categories.forEach((item) => {
+      counts[item.name] = 0;
     });
 
     tools.forEach((tool) => {
@@ -50,7 +55,7 @@ export default function HomePage() {
     });
 
     return counts;
-  }, [tools]);
+  }, [tools, categories]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -104,6 +109,7 @@ export default function HomePage() {
 
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-red-100">
                   영업 현장에서 활용 가능한 다양한 학술·마케팅 자료를
+                  <br />
                   쉽고 빠르게 조회·활용할 수 있도록 구축한 지원 플랫폼입니다.
                 </p>
               </div>
@@ -116,23 +122,22 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="mb-5 grid gap-3 grid-cols-2 md:grid-cols-4 xl:grid-cols-7">
-          {[
-  ['전체 자료', tools.length],
-  ['검사홍보', categoryCounts['검사홍보'] || 0],
-  ['학술임상', categoryCounts['학술임상'] || 0],
-  ['영업제안', categoryCounts['영업제안'] || 0],
-  ['마케팅지원', categoryCounts['마케팅지원'] || 0],
-  ['IT솔루션', categoryCounts['IT솔루션'] || 0],
-  ['기타', categoryCounts['기타'] || 0]
-].map(([label, count]) => (
+        <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
+          <div className="rounded-2xl border bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">전체 자료</p>
+            <p className="mt-1 text-2xl font-extrabold text-[#B5121B]">
+              {tools.length}
+            </p>
+          </div>
+
+          {categories.map((item) => (
             <div
-              key={String(label)}
+              key={item.id}
               className="rounded-2xl border bg-white p-4 shadow-sm"
             >
-              <p className="text-sm text-slate-500">{label}</p>
+              <p className="text-sm text-slate-500">{item.name}</p>
               <p className="mt-1 text-2xl font-extrabold text-[#B5121B]">
-                {count}
+                {categoryCounts[item.name] || 0}
               </p>
             </div>
           ))}
@@ -168,18 +173,18 @@ export default function HomePage() {
               전체
             </button>
 
-            {CATEGORIES.map((item) => (
+            {categories.map((item) => (
               <button
-                key={item}
+                key={item.id}
                 type="button"
-                onClick={() => setCategory(item)}
+                onClick={() => setCategory(item.name)}
                 className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                  category === item
+                  category === item.name
                     ? 'bg-[#B5121B] text-white'
                     : 'bg-red-50 text-[#B5121B] hover:bg-red-100'
                 }`}
               >
-                {item}
+                {item.name}
               </button>
             ))}
           </div>
