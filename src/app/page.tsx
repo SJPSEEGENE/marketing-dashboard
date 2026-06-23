@@ -91,7 +91,7 @@ export default function HomePage() {
             <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-white p-3 shadow-md">
               <img
                 src="/logo.png"
-                alt="씨젠의료재단 로고"
+                alt="?�젠?�료?�단 로고"
                 className="h-full w-full object-contain"
               />
             </div>
@@ -102,12 +102,10 @@ export default function HomePage() {
               </p>
 
               <h2 className="text-3xl font-bold">
-                씨젠의료재단 학술·마케팅 지원 플랫폼
-              </h2>
+                ?�젠?�료?�단 ?�술·마�???지???�랫??              </h2>
 
               <p className="mt-3 text-sm leading-6 text-red-100">
-                씨젠의료재단에서 제공하는 다양한 학술·마케팅 지원 자료를
-                확인하실 수 있습니다.
+                ?�젠?�료?�단?�서 ?�공?�는 ?�양???�술·마�???지???�료�?                ?�인?�실 ???�습?�다.
               </p>
             </div>
           </div>
@@ -115,30 +113,30 @@ export default function HomePage() {
 
         <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-500">전체 자료</p>
+            <p className="text-sm text-slate-500">?�체 ?�료</p>
             <p className="mt-1 text-2xl font-bold text-[#B5121B]">
               {tools.length}
             </p>
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-500">검사홍보</p>
+            <p className="text-sm text-slate-500">검?�홍�?/p>
             <p className="mt-1 text-2xl font-bold text-[#B5121B]">
-              {categoryCounts['검사홍보'] || 0}
+              {categoryCounts['검?�홍�?] || 0}
             </p>
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-500">학술임상</p>
+            <p className="text-sm text-slate-500">?�술?�상</p>
             <p className="mt-1 text-2xl font-bold text-[#B5121B]">
-              {categoryCounts['학술임상'] || 0}
+              {categoryCounts['?�술?�상'] || 0}
             </p>
           </div>
 
           <div className="rounded-2xl border bg-white p-4 shadow-sm">
-            <p className="text-sm text-slate-500">영업제안</p>
+            <p className="text-sm text-slate-500">?�업?�안</p>
             <p className="mt-1 text-2xl font-bold text-[#B5121B]">
-              {categoryCounts['영업제안'] || 0}
+              {categoryCounts['?�업?�안'] || 0}
             </p>
           </div>
         </div>
@@ -154,9 +152,9 @@ export default function HomePage() {
               onChange={(e) => setSortType(e.target.value as SortType)}
               className="rounded-lg border px-3 py-2 text-sm"
             >
-              <option value="latest">최신순</option>
-              <option value="oldest">오래된순</option>
-              <option value="title">제목순</option>
+              <option value="latest">최신??/option>
+              <option value="oldest">?�래?�순</option>
+              <option value="title">?�목??/option>
             </select>
           </div>
 
@@ -170,7 +168,7 @@ export default function HomePage() {
                   : 'bg-red-50 text-[#B5121B] hover:bg-red-100'
               }`}
             >
-              전체 {tools.length}
+              ?�체 {tools.length}
             </button>
 
             {CATEGORIES.map((item) => (
@@ -192,11 +190,11 @@ export default function HomePage() {
 
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-slate-500">
-            총{' '}
+            �?' '}
             <span className="font-semibold text-slate-900">
               {filtered.length}
             </span>
-            개 자료가 검색되었습니다.
+            �??�료가 검?�되?�습?�다.
           </p>
 
           {category && (
@@ -205,36 +203,35 @@ export default function HomePage() {
               onClick={() => setCategory('')}
               className="text-sm font-semibold text-[#B5121B]"
             >
-              필터 초기화
-            </button>
+              ?�터 초기??            </button>
           )}
         </div>
 
         {loading && (
           <p className="text-sm text-slate-500">
-            자료를 불러오는 중입니다.
+            ?�료�?불러?�는 중입?�다.
           </p>
         )}
 
         {!loading && filtered.length === 0 && (
           <p className="rounded-2xl border bg-white p-8 text-center text-slate-500">
-            조건에 맞는 자료가 없습니다.
+            조건??맞는 ?�료가 ?�습?�다.
           </p>
         )}
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filtered.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} compact />
+            <ToolCard key={tool.id} tool={tool} />
           ))}
         </div>
 
         <footer className="mt-10 rounded-2xl border bg-white p-5 text-center text-sm text-slate-600 shadow-sm">
           <p className="font-semibold text-slate-800">
-            본 플랫폼은 씨젠의료재단 학술기획팀에서 제작·운영합니다.
+            �??�랫?��? ?�젠?�료?�단 ?�술기획?�?�서 ?�작·?�영?�니??
           </p>
 
           <p className="mt-2">
-            학술문의 :{' '}
+            ?�술문의 :{' '}
             <span className="font-semibold text-[#B5121B]">
               1566-6500
             </span>
