@@ -103,8 +103,8 @@ export default function HomePage() {
                 </h2>
 
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-red-100">
-                  의료기관 대상 학술·마케팅 자료를 한 곳에서 확인할 수 있도록
-                  학술기획팀에서 제작·운영하는 자료 조회 플랫폼입니다.
+                  영업 현장에서 활용 가능한 다양한 학술·마케팅 자료를
+                  쉽고 빠르게 조회·활용할 수 있도록 구축한 지원 플랫폼입니다.
                 </p>
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function HomePage() {
                   : 'bg-red-50 text-[#B5121B] hover:bg-red-100'
               }`}
             >
-              전체 {tools.length}
+              전체
             </button>
 
             {CATEGORIES.map((item) => (
@@ -176,7 +176,7 @@ export default function HomePage() {
                     : 'bg-red-50 text-[#B5121B] hover:bg-red-100'
                 }`}
               >
-                {item} {categoryCounts[item] || 0}
+                {item}
               </button>
             ))}
           </div>
