@@ -10,6 +10,7 @@ import type { MarketingTool } from '@/types/tool';
 const PROMOTION_TYPES = [
   '리플렛',
   '브로슈어',
+  '뉴스레터',
   '1P 안내자료',
   '배너',
   '탁상배너',
