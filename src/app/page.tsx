@@ -116,13 +116,16 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-5 grid gap-3 grid-cols-2 md:grid-cols-4 xl:grid-cols-7">
           {[
-            ['전체 자료', tools.length],
-            ['검사홍보', categoryCounts['검사홍보'] || 0],
-            ['학술임상', categoryCounts['학술임상'] || 0],
-            ['영업제안', categoryCounts['영업제안'] || 0]
-          ].map(([label, count]) => (
+  ['전체 자료', tools.length],
+  ['검사홍보', categoryCounts['검사홍보'] || 0],
+  ['학술임상', categoryCounts['학술임상'] || 0],
+  ['영업제안', categoryCounts['영업제안'] || 0],
+  ['마케팅지원', categoryCounts['마케팅지원'] || 0],
+  ['IT솔루션', categoryCounts['IT솔루션'] || 0],
+  ['기타', categoryCounts['기타'] || 0]
+].map(([label, count]) => (
             <div
               key={String(label)}
               className="rounded-2xl border bg-white p-4 shadow-sm"
