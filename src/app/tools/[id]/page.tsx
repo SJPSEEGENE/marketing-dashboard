@@ -5,6 +5,10 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
+function getPdfViewerUrl(url: string) {
+  return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(url)}`;
+}
+
 export default function ToolDetailPage() {
   const params = useParams();
   const id = params.id as string;
@@ -144,7 +148,7 @@ export default function ToolDetailPage() {
                       />
                     ) : (
                       <iframe
-                        src={`${file.file_url}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                        src={getPdfViewerUrl(file.file_url)}
                         className="pointer-events-none h-[520px] w-[360px] scale-[0.34] origin-center rounded border bg-white"
                       />
                     )}
@@ -242,7 +246,7 @@ export default function ToolDetailPage() {
             </div>
 
             <iframe
-              src={`${selectedPdf}#toolbar=0&navpanes=0`}
+              src={getPdfViewerUrl(selectedPdf)}
               className="h-[calc(88vh-52px)] w-full"
             />
           </div>
