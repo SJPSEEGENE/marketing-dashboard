@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Home, LogOut, Pencil, Search, Trash2 } from 'lucide-react';
 import { AdminForm } from '@/components/AdminForm';
+import { CategoryManager } from '@/components/CategoryManager';
 import { isAdminLoggedIn, logoutAdmin } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { STORAGE_BUCKET } from '@/lib/constants';
@@ -99,9 +100,7 @@ export default function AdminPage() {
       }
 
       if (storagePaths.length > 0) {
-        await supabase.storage
-          .from(STORAGE_BUCKET)
-          .remove(storagePaths);
+        await supabase.storage.from(STORAGE_BUCKET).remove(storagePaths);
       }
 
       const { error: deleteError } = await supabase
@@ -128,11 +127,11 @@ export default function AdminPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">관리자 화면</h1>
           <p className="mt-1 text-sm text-slate-500">
-            자료 등록, 수정, 삭제를 관리합니다.
+            자료 등록, 수정, 삭제 및 분류를 관리합니다.
           </p>
         </div>
 
@@ -156,7 +155,10 @@ export default function AdminPage() {
       </div>
 
       <section className="grid gap-6 lg:grid-cols-[420px_1fr]">
-        <AdminForm onSaved={load} />
+        <div className="space-y-6">
+          <AdminForm onSaved={load} />
+          <CategoryManager />
+        </div>
 
         <div className="rounded-2xl border bg-white p-5 shadow-sm">
           <div className="mb-4">
@@ -188,8 +190,7 @@ export default function AdminPage() {
 
           <div className="space-y-3">
             {filteredTools.map((tool) => {
-              const imageUrl =
-                (tool as any).thumbnail_url || (tool as any).file_url;
+              const imageUrl = (tool as any).thumbnail_url || '';
 
               return (
                 <div

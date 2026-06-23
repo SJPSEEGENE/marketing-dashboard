@@ -1,9 +1,10 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
-import { CATEGORIES, STORAGE_BUCKET } from '@/lib/constants';
+import { STORAGE_BUCKET } from '@/lib/constants';
+import { getActiveCategories, type Category } from '@/lib/categories';
 import { FileUploader } from './FileUploader';
 import type { MarketingTool } from '@/types/tool';
 
@@ -27,8 +28,9 @@ export function AdminForm({
   initialDetailFiles?: any[];
   onSaved?: () => void;
 }) {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [title, setTitle] = useState(initialTool?.title || '');
-  const [category, setCategory] = useState(initialTool?.category || CATEGORIES[0]);
+  const [category, setCategory] = useState(initialTool?.category || '');
   const [keywords, setKeywords] = useState((initialTool?.keywords || []).join(', '));
   const [description, setDescription] = useState(initialTool?.description || '');
 
@@ -38,6 +40,29 @@ export function AdminForm({
   const [existingFiles, setExistingFiles] = useState<any[]>(initialDetailFiles);
 
   const [loading, setLoading] = useState(false);
+
+  async function loadCategories() {
+    const categoryList = await getActiveCategories();
+    setCategories(categoryList);
+
+    if (!initialTool && !category && categoryList.length > 0) {
+      setCategory(categoryList[0].name);
+    }
+  }
+
+  useEffect(() => {
+    loadCategories();
+
+    function handleCategoriesUpdated() {
+      loadCategories();
+    }
+
+    window.addEventListener('categories-updated', handleCategoriesUpdated);
+
+    return () => {
+      window.removeEventListener('categories-updated', handleCategoriesUpdated);
+    };
+  }, []);
 
   function handleDetailFiles(files: File[]) {
     const maxNewFiles = 5 - existingFiles.length;
@@ -297,6 +322,10 @@ export function AdminForm({
         setThumbnailFile(null);
         setDetailFiles([]);
         setFileLabels([]);
+
+        if (categories.length > 0) {
+          setCategory(categories[0].name);
+        }
       }
 
       onSaved?.();
@@ -328,9 +357,13 @@ export function AdminForm({
         }}
         className="w-full rounded-lg border px-3 py-2"
       >
-        {CATEGORIES.map((item) => (
-          <option key={item} value={item}>
-            {item}
+        {categories.length === 0 && (
+          <option value="">등록된 분류가 없습니다.</option>
+        )}
+
+        {categories.map((item) => (
+          <option key={item.id} value={item.name}>
+            {item.name}
           </option>
         ))}
       </select>
