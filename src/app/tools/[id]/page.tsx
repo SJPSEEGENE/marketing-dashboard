@@ -108,7 +108,7 @@ export default function ToolDetailPage() {
             등록된 세부 파일이 없습니다.
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {files.map((file, index) => {
               const label =
                 tool.category === '검사홍보'

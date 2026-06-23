@@ -1,33 +1,23 @@
 import Link from 'next/link';
-import { Trash2 } from 'lucide-react';
+import { ArrowRight, Trash2 } from 'lucide-react';
 
 interface Props {
   tool: any;
   isAdmin?: boolean;
-  compact?: boolean;
   onDelete?: (tool: any) => void;
 }
 
-export function ToolCard({
-  tool,
-  isAdmin = false,
-  compact = false,
-  onDelete
-}: Props) {
+export function ToolCard({ tool, isAdmin = false, onDelete }: Props) {
   const imageUrl = tool.thumbnail_url || tool.file_url;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-      <div
-        className={`flex items-center justify-center bg-white ${
-          compact ? 'h-44 px-4 py-5' : 'h-56 px-5 py-6'
-        }`}
-      >
+    <div className="group flex h-full flex-col overflow-hidden rounded-3xl border bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl">
+      <div className="flex h-64 items-center justify-center bg-gradient-to-b from-white to-slate-50 px-6 pb-5 pt-10">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={tool.title}
-            className="max-h-full max-w-full object-contain"
+            className="max-h-full max-w-full object-contain transition duration-200 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-gray-400">
@@ -36,35 +26,25 @@ export function ToolCard({
         )}
       </div>
 
-      <div
-        className={`flex flex-1 flex-col border-t bg-white ${
-          compact ? 'space-y-2 p-3' : 'space-y-3 p-4'
-        }`}
-      >
-        <span className="inline-flex w-fit rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-[#B5121B]">
+      <div className="flex flex-1 flex-col border-t bg-white p-5">
+        <span className="mb-3 inline-flex w-fit rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-[#B5121B]">
           {tool.category}
         </span>
 
-        <h3
-          className={`font-bold text-gray-900 ${
-            compact ? 'line-clamp-2 min-h-[40px] text-sm' : 'text-lg'
-          }`}
-        >
+        <h3 className="line-clamp-2 min-h-[52px] text-xl font-extrabold leading-snug text-slate-950">
           {tool.title}
         </h3>
 
-        {!compact && tool.description && (
-          <p className="line-clamp-2 text-sm text-gray-600">
-            {tool.description}
-          </p>
-        )}
+        <p className="mt-3 line-clamp-2 min-h-[44px] text-sm leading-5 text-slate-600">
+          {tool.description || '등록된 마케팅 툴의 세부 자료를 확인할 수 있습니다.'}
+        </p>
 
         {tool.keywords?.length > 0 && (
-          <div className="flex min-h-[24px] flex-wrap gap-1">
-            {tool.keywords.slice(0, compact ? 2 : 5).map((keyword: string) => (
+          <div className="mt-4 flex min-h-[28px] flex-wrap gap-1.5">
+            {tool.keywords.slice(0, 3).map((keyword: string) => (
               <span
                 key={keyword}
-                className="rounded bg-gray-100 px-2 py-1 text-[10px] text-gray-600"
+                className="rounded-lg bg-slate-100 px-2 py-1 text-xs text-slate-600"
               >
                 #{keyword}
               </span>
@@ -72,22 +52,23 @@ export function ToolCard({
           </div>
         )}
 
-        <div className="mt-auto flex gap-2 pt-1">
+        <div className="mt-auto flex gap-2 pt-5">
           <Link
             href={`/tools/${tool.id}`}
-            className="flex-1 rounded-lg bg-[#B5121B] px-3 py-2 text-center text-xs font-semibold text-white hover:bg-[#8F1118]"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#B5121B] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#8F1118]"
           >
             상세 보기
+            <ArrowRight size={15} />
           </Link>
 
           {isAdmin && (
             <button
               type="button"
               onClick={() => onDelete?.(tool)}
-              className="rounded-lg border border-red-200 px-3 py-2 text-red-600 hover:bg-red-50"
+              className="rounded-xl border border-red-200 px-3 py-2 text-red-600 hover:bg-red-50"
               title="삭제"
             >
-              <Trash2 size={15} />
+              <Trash2 size={16} />
             </button>
           )}
         </div>
