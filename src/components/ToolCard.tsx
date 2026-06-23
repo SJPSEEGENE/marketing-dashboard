@@ -8,7 +8,7 @@ interface Props {
 }
 
 export function ToolCard({ tool, isAdmin = false, onDelete }: Props) {
-  const imageUrl = tool.thumbnail_url || tool.file_url;
+  const imageUrl = tool.thumbnail_url || '';
 
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-xl">
