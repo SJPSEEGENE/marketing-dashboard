@@ -31,7 +31,7 @@ export function ToolCard({ tool, isAdmin = false, onDelete }: Props) {
           {tool.category}
         </span>
 
-        <h3 className="line-clamp-2 min-h-[38px] text-sm font-extrabold leading-snug text-slate-950 md:min-h-[52px] md:text-xl">
+        <h3 className="line-clamp-2 min-h-[44px] break-keep text-sm font-extrabold leading-snug text-slate-950 md:min-h-[64px] md:text-xl">
           {tool.title}
         </h3>
 
