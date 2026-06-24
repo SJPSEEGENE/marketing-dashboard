@@ -12,6 +12,7 @@ export default function AdminLoginPage() {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
+
     if (loginAdmin(id, password)) {
       toast.success('관리자 로그인 완료');
       router.push('/admin');
@@ -22,12 +23,34 @@ export default function AdminLoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl border bg-white p-6 shadow-sm">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-sm rounded-2xl border bg-white p-6 shadow-sm"
+      >
         <h1 className="mb-2 text-2xl font-bold">관리자 로그인</h1>
-        <p className="mb-6 text-sm text-slate-500">기본 계정: admin / admin1234</p>
-        <input value={id} onChange={(e) => setId(e.target.value)} placeholder="ID" className="mb-3 w-full rounded-lg border px-3 py-2" />
-        <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" className="mb-4 w-full rounded-lg border px-3 py-2" />
-        <button className="w-full rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white">로그인</button>
+
+        <p className="mb-6 text-sm text-slate-500">
+          관리자 계정으로 로그인하세요.
+        </p>
+
+        <input
+          value={id}
+          onChange={(e) => setId(e.target.value)}
+          placeholder="ID"
+          className="mb-3 w-full rounded-lg border px-3 py-2"
+        />
+
+        <input
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          type="password"
+          className="mb-4 w-full rounded-lg border px-3 py-2"
+        />
+
+        <button className="w-full rounded-lg bg-slate-900 px-4 py-3 font-semibold text-white">
+          로그인
+        </button>
       </form>
     </main>
   );
