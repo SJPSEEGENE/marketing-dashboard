@@ -1,8 +1,8 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Save, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface PromotionalItem {
@@ -18,11 +18,14 @@ interface PromotionalItem {
 
 export function PromotionalItemManager() {
   const [items, setItems] = useState<PromotionalItem[]>([]);
+  const [originalItems, setOriginalItems] = useState<PromotionalItem[]>([]);
+
   const [name, setName] = useState('');
   const [specification, setSpecification] = useState('');
   const [stockQuantity, setStockQuantity] = useState('0');
   const [stockUnit, setStockUnit] = useState('개');
   const [note, setNote] = useState('');
+
   const [loading, setLoading] = useState(false);
 
   async function loadItems() {
@@ -38,12 +41,30 @@ export function PromotionalItemManager() {
       return;
     }
 
-    setItems((data || []) as PromotionalItem[]);
+    const list = (data || []) as PromotionalItem[];
+
+    setItems(list);
+    setOriginalItems(JSON.parse(JSON.stringify(list)));
   }
 
   useEffect(() => {
     loadItems();
   }, []);
+
+  const changedCount = useMemo(() => {
+    return items.filter((item) => {
+      const origin = originalItems.find((origin) => origin.id === item.id);
+      if (!origin) return false;
+
+      return (
+        origin.name !== item.name ||
+        origin.specification !== item.specification ||
+        origin.stock_quantity !== item.stock_quantity ||
+        origin.stock_unit !== item.stock_unit ||
+        origin.note !== item.note
+      );
+    }).length;
+  }, [items, originalItems]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -76,7 +97,7 @@ export function PromotionalItemManager() {
       setStockUnit('개');
       setNote('');
 
-      loadItems();
+      await loadItems();
     } catch (error) {
       console.error(error);
       toast.error('판촉물 등록 중 오류가 발생했습니다.');
@@ -85,46 +106,64 @@ export function PromotionalItemManager() {
     }
   }
 
-  async function updateStock(item: PromotionalItem, value: string) {
-    const nextStock = Number(value) || 0;
-
-    const { error } = await supabase
-      .from('promotional_items')
-      .update({ stock_quantity: nextStock })
-      .eq('id', item.id);
-
-    if (error) {
-      console.error(error);
-      toast.error('재고 수정 중 오류가 발생했습니다.');
-      return;
-    }
-
+  function updateItem(id: string, key: keyof PromotionalItem, value: any) {
     setItems((prev) =>
-      prev.map((target) =>
-        target.id === item.id
-          ? { ...target, stock_quantity: nextStock }
-          : target
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              [key]: value
+            }
+          : item
       )
     );
   }
 
-  async function updateNote(item: PromotionalItem, value: string) {
-    const { error } = await supabase
-      .from('promotional_items')
-      .update({ note: value })
-      .eq('id', item.id);
+  async function handleSaveAll() {
+    const changedItems = items.filter((item) => {
+      const origin = originalItems.find((origin) => origin.id === item.id);
+      if (!origin) return false;
 
-    if (error) {
-      console.error(error);
-      toast.error('비고 수정 중 오류가 발생했습니다.');
+      return (
+        origin.name !== item.name ||
+        origin.specification !== item.specification ||
+        origin.stock_quantity !== item.stock_quantity ||
+        origin.stock_unit !== item.stock_unit ||
+        origin.note !== item.note
+      );
+    });
+
+    if (changedItems.length === 0) {
+      toast.message('저장할 변경사항이 없습니다.');
       return;
     }
 
-    setItems((prev) =>
-      prev.map((target) =>
-        target.id === item.id ? { ...target, note: value } : target
-      )
-    );
+    setLoading(true);
+
+    try {
+      for (const item of changedItems) {
+        const { error } = await supabase
+          .from('promotional_items')
+          .update({
+            name: item.name.trim(),
+            specification: item.specification?.trim() || null,
+            stock_quantity: Number(item.stock_quantity) || 0,
+            stock_unit: item.stock_unit?.trim() || '개',
+            note: item.note?.trim() || null
+          })
+          .eq('id', item.id);
+
+        if (error) throw error;
+      }
+
+      toast.success('변경사항이 저장되었습니다.');
+      await loadItems();
+    } catch (error) {
+      console.error(error);
+      toast.error('저장 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleDelete(item: PromotionalItem) {
@@ -133,134 +172,218 @@ export function PromotionalItemManager() {
 
 품목명 : ${item.name}
 
-※ 실제 삭제가 아니라 숨김 처리됩니다.`
+※ 실제 삭제가 아니라 숨김 처리됩니다.
+※ 저장 버튼 없이 즉시 반영됩니다.`
     );
 
     if (!ok) return;
 
-    const { error } = await supabase
-      .from('promotional_items')
-      .update({ is_active: false })
-      .eq('id', item.id);
+    setLoading(true);
 
-    if (error) {
+    try {
+      const { error } = await supabase
+        .from('promotional_items')
+        .update({ is_active: false })
+        .eq('id', item.id);
+
+      if (error) throw error;
+
+      toast.success('판촉물이 삭제 처리되었습니다.');
+      await loadItems();
+    } catch (error) {
       console.error(error);
       toast.error('삭제 중 오류가 발생했습니다.');
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    toast.success('판촉물이 숨김 처리되었습니다.');
-    loadItems();
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-5 shadow-sm">
-      <div className="mb-4">
-        <h2 className="text-xl font-bold">판촉물 현황 및 재고 관리</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          관리자 화면에서만 확인되는 판촉물 재고 관리 영역입니다.
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="mb-5 space-y-3 rounded-xl border bg-slate-50 p-4">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="판촉물명"
-          className="w-full rounded-lg border px-3 py-2 text-sm"
-        />
-
-        <input
-          value={specification}
-          onChange={(e) => setSpecification(e.target.value)}
-          placeholder="규격 / 설명"
-          className="w-full rounded-lg border px-3 py-2 text-sm"
-        />
-
-        <div className="grid grid-cols-2 gap-2">
-          <input
-            type="number"
-            value={stockQuantity}
-            onChange={(e) => setStockQuantity(e.target.value)}
-            placeholder="재고 수량"
-            className="rounded-lg border px-3 py-2 text-sm"
-          />
-
-          <input
-            value={stockUnit}
-            onChange={(e) => setStockUnit(e.target.value)}
-            placeholder="단위 예: 개, 부, 박스"
-            className="rounded-lg border px-3 py-2 text-sm"
-          />
+    <div className="space-y-6">
+      <section className="grid gap-4 md:grid-cols-4">
+        <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">등록 품목</p>
+          <p className="mt-1 text-3xl font-extrabold text-[#B5121B]">
+            {items.length}
+          </p>
         </div>
 
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="비고"
-          className="min-h-20 w-full rounded-lg border px-3 py-2 text-sm"
-        />
+        <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">총 재고 수량</p>
+          <p className="mt-1 text-3xl font-extrabold text-[#B5121B]">
+            {items.reduce(
+              (sum, item) => sum + (Number(item.stock_quantity) || 0),
+              0
+            )}
+          </p>
+        </div>
 
-        <button
-          disabled={loading}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#B5121B] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-        >
-          <Plus className="h-4 w-4" />
-          판촉물 등록
-        </button>
-      </form>
+        <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">재고 10개 이하</p>
+          <p className="mt-1 text-3xl font-extrabold text-[#B5121B]">
+            {items.filter((item) => Number(item.stock_quantity) <= 10).length}
+          </p>
+        </div>
 
-      <div className="space-y-3">
-        {items.map((item) => (
-          <div key={item.id} className="rounded-xl border p-3">
-            <div className="mb-2 flex items-start justify-between gap-3">
-              <div>
-                <p className="font-semibold text-slate-900">{item.name}</p>
-                {item.specification && (
-                  <p className="mt-1 text-xs text-slate-500">
-                    {item.specification}
-                  </p>
-                )}
-              </div>
+        <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">수정 대기</p>
+          <p className="mt-1 text-3xl font-extrabold text-[#B5121B]">
+            {changedCount}
+          </p>
+        </div>
+      </section>
 
-              <button
-                type="button"
-                onClick={() => handleDelete(item)}
-                className="rounded-lg border p-2 text-red-600 hover:bg-red-50"
-                title="삭제"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
+      <section className="rounded-2xl border bg-white p-5 shadow-sm">
+        <h2 className="mb-4 text-xl font-bold">판촉물 신규 등록</h2>
 
-            <div className="grid grid-cols-[1fr_70px] gap-2">
-              <input
-                type="number"
-                value={item.stock_quantity}
-                onChange={(e) => updateStock(item, e.target.value)}
-                className="rounded-lg border px-3 py-2 text-sm"
-              />
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="grid gap-3 md:grid-cols-4">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="판촉물명"
+              className="rounded-lg border px-3 py-2 text-sm"
+            />
 
-              <div className="flex items-center justify-center rounded-lg bg-slate-100 text-sm font-semibold text-slate-600">
-                {item.stock_unit || '개'}
-              </div>
-            </div>
+            <input
+              value={specification}
+              onChange={(e) => setSpecification(e.target.value)}
+              placeholder="규격 / 설명"
+              className="rounded-lg border px-3 py-2 text-sm"
+            />
 
-            <textarea
-              value={item.note || ''}
-              onChange={(e) => updateNote(item, e.target.value)}
-              placeholder="비고"
-              className="mt-2 min-h-16 w-full rounded-lg border px-3 py-2 text-sm"
+            <input
+              type="number"
+              value={stockQuantity}
+              onChange={(e) => setStockQuantity(e.target.value)}
+              placeholder="재고"
+              className="rounded-lg border px-3 py-2 text-sm"
+            />
+
+            <input
+              value={stockUnit}
+              onChange={(e) => setStockUnit(e.target.value)}
+              placeholder="단위"
+              className="rounded-lg border px-3 py-2 text-sm"
             />
           </div>
-        ))}
 
-        {items.length === 0 && (
-          <p className="rounded-xl border bg-slate-50 p-4 text-center text-sm text-slate-500">
-            등록된 판촉물이 없습니다.
-          </p>
-        )}
-      </div>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="비고"
+            className="min-h-20 w-full rounded-lg border px-3 py-2 text-sm"
+          />
+
+          <button
+            disabled={loading}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#B5121B] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            <Plus className="h-4 w-4" />
+            판촉물 등록
+          </button>
+        </form>
+      </section>
+
+      <section className="rounded-2xl border bg-white p-5 shadow-sm">
+        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-xl font-bold">판촉물 재고 현황</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              카드에서 내용을 수정한 뒤 저장 버튼을 눌러야 반영됩니다.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSaveAll}
+            disabled={loading || changedCount === 0}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+          >
+            <Save className="h-4 w-4" />
+            변경사항 저장
+          </button>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="flex min-h-[260px] flex-col rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md"
+            >
+              <div className="mb-3 flex items-start justify-between gap-2">
+                <input
+                  value={item.name}
+                  onChange={(e) =>
+                    updateItem(item.id, 'name', e.target.value)
+                  }
+                  className="min-w-0 flex-1 rounded-lg border px-3 py-2 text-sm font-bold text-slate-900"
+                  placeholder="판촉물명"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => handleDelete(item)}
+                  disabled={loading}
+                  className="rounded-lg border p-2 text-red-600 hover:bg-red-50 disabled:opacity-40"
+                  title="삭제"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+
+              <input
+                value={item.specification || ''}
+                onChange={(e) =>
+                  updateItem(item.id, 'specification', e.target.value)
+                }
+                className="mb-3 rounded-lg border px-3 py-2 text-sm"
+                placeholder="규격 / 설명"
+              />
+
+              <div className="mb-3 grid grid-cols-[1fr_70px] gap-2">
+                <input
+                  type="number"
+                  value={item.stock_quantity}
+                  onChange={(e) =>
+                    updateItem(
+                      item.id,
+                      'stock_quantity',
+                      Number(e.target.value) || 0
+                    )
+                  }
+                  className="rounded-lg border px-3 py-2 text-sm font-bold text-[#B5121B]"
+                  placeholder="재고"
+                />
+
+                <input
+                  value={item.stock_unit || '개'}
+                  onChange={(e) =>
+                    updateItem(item.id, 'stock_unit', e.target.value)
+                  }
+                  className="rounded-lg border bg-slate-50 px-3 py-2 text-center text-sm font-semibold"
+                  placeholder="단위"
+                />
+              </div>
+
+              <textarea
+                value={item.note || ''}
+                onChange={(e) =>
+                  updateItem(item.id, 'note', e.target.value)
+                }
+                placeholder="비고"
+                className="mt-auto min-h-24 w-full rounded-lg border px-3 py-2 text-sm"
+              />
+            </div>
+          ))}
+
+          {items.length === 0 && (
+            <div className="col-span-full rounded-xl border bg-slate-50 p-10 text-center text-sm text-slate-500">
+              등록된 판촉물이 없습니다.
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
