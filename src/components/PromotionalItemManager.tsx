@@ -10,9 +10,16 @@ interface PromotionalItem {
   name: string;
   category: string;
   specification: string | null;
+  usage: string | null;
+
+  image_url: string | null;
+  image_path: string | null;
+
   stock_quantity: number;
   stock_unit: string;
+
   note: string | null;
+
   is_active: boolean;
 }
 
@@ -20,11 +27,16 @@ export function PromotionalItemManager() {
   const [items, setItems] = useState<PromotionalItem[]>([]);
   const [originalItems, setOriginalItems] = useState<PromotionalItem[]>([]);
 
-  const [name, setName] = useState('');
-  const [specification, setSpecification] = useState('');
-  const [stockQuantity, setStockQuantity] = useState('0');
-  const [stockUnit, setStockUnit] = useState('개');
-  const [note, setNote] = useState('');
+const [name, setName] = useState('');
+const [usage, setUsage] = useState('');
+
+const [stockQuantity, setStockQuantity] = useState('0');
+const [stockUnit, setStockUnit] = useState('개');
+
+const [note, setNote] = useState('');
+
+const [imageFile, setImageFile] = useState<File | null>(null);
+const [previewImage, setPreviewImage] = useState('');
 
   const [loading, setLoading] = useState(false);
 
@@ -66,45 +78,79 @@ export function PromotionalItemManager() {
     }).length;
   }, [items, originalItems]);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+async function handleSubmit(e: FormEvent) {
+  e.preventDefault();
 
-    if (!name.trim()) {
-      toast.error('판촉물명을 입력하세요.');
-      return;
+  if (!name.trim()) {
+    toast.error('판촉물명을 입력하세요.');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    let imageUrl = null;
+    let imagePath = null;
+
+    if (imageFile) {
+      const ext = imageFile.name.split('.').pop();
+
+      imagePath = `promotional/${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('marketing_tools')
+        .upload(imagePath, imageFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('marketing_tools')
+        .getPublicUrl(imagePath);
+
+      imageUrl = data.publicUrl;
     }
 
-    setLoading(true);
-
-    try {
-      const { error } = await supabase.from('promotional_items').insert({
+    const { error } = await supabase
+      .from('promotional_items')
+      .insert({
         name: name.trim(),
         category: '판촉물',
-        specification: specification.trim() || null,
+
+        usage: usage.trim() || null,
+
+        image_url: imageUrl,
+        image_path: imagePath,
+
         stock_quantity: Number(stockQuantity) || 0,
-        stock_unit: stockUnit.trim() || '개',
+        stock_unit: stockUnit || '개',
+
         note: note.trim() || null,
         is_active: true
       });
 
-      if (error) throw error;
+    if (error) throw error;
 
-      toast.success('판촉물이 등록되었습니다.');
+    toast.success('판촉물이 등록되었습니다.');
 
-      setName('');
-      setSpecification('');
-      setStockQuantity('0');
-      setStockUnit('개');
-      setNote('');
+    setName('');
+    setUsage('');
 
-      await loadItems();
-    } catch (error) {
-      console.error(error);
-      toast.error('판촉물 등록 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
+    setStockQuantity('0');
+    setStockUnit('개');
+
+    setNote('');
+
+    setImageFile(null);
+    setPreviewImage('');
+
+    loadItems();
+  } catch (error) {
+    console.error(error);
+    toast.error('등록 중 오류가 발생했습니다.');
+  } finally {
+    setLoading(false);
   }
+}
 
   function updateItem(id: string, key: keyof PromotionalItem, value: any) {
     setItems((prev) =>
@@ -236,53 +282,96 @@ export function PromotionalItemManager() {
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
         <h2 className="mb-4 text-xl font-bold">판촉물 신규 등록</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="grid gap-3 md:grid-cols-4">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="판촉물명"
-              className="rounded-lg border px-3 py-2 text-sm"
-            />
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-            <input
-              value={specification}
-              onChange={(e) => setSpecification(e.target.value)}
-              placeholder="규격 / 설명"
-              className="rounded-lg border px-3 py-2 text-sm"
-            />
+  <div className="grid gap-4 md:grid-cols-2">
 
-            <input
-              type="number"
-              value={stockQuantity}
-              onChange={(e) => setStockQuantity(e.target.value)}
-              placeholder="재고"
-              className="rounded-lg border px-3 py-2 text-sm"
-            />
+    <div className="rounded-xl border border-dashed p-4">
 
-            <input
-              value={stockUnit}
-              onChange={(e) => setStockUnit(e.target.value)}
-              placeholder="단위"
-              className="rounded-lg border px-3 py-2 text-sm"
-            />
-          </div>
+      <p className="mb-3 text-sm font-semibold">
+        대표 이미지
+      </p>
 
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="비고"
-            className="min-h-20 w-full rounded-lg border px-3 py-2 text-sm"
-          />
+      {previewImage ? (
+        <img
+          src={previewImage}
+          className="h-48 w-full rounded-lg object-contain"
+        />
+      ) : (
+        <div className="flex h-48 items-center justify-center rounded-lg bg-slate-50 text-sm text-slate-400">
+          이미지 미리보기
+        </div>
+      )}
 
-          <button
-            disabled={loading}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#B5121B] px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            <Plus className="h-4 w-4" />
-            판촉물 등록
-          </button>
-        </form>
+      <input
+        type="file"
+        accept="image/*"
+        className="mt-3 w-full text-sm"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+
+          if (!file) return;
+
+          setImageFile(file);
+          setPreviewImage(URL.createObjectURL(file));
+        }}
+      />
+    </div>
+
+    <div className="space-y-3">
+
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="판촉물명"
+        className="w-full rounded-lg border px-3 py-3"
+      />
+
+      <input
+        value={usage}
+        onChange={(e) => setUsage(e.target.value)}
+        placeholder="용도 (예: 거래처 증정용)"
+        className="w-full rounded-lg border px-3 py-3"
+      />
+
+      <div className="grid grid-cols-2 gap-3">
+
+        <input
+          type="number"
+          value={stockQuantity}
+          onChange={(e) => setStockQuantity(e.target.value)}
+          placeholder="재고"
+          className="rounded-lg border px-3 py-3"
+        />
+
+        <input
+          value={stockUnit}
+          onChange={(e) => setStockUnit(e.target.value)}
+          placeholder="단위"
+          className="rounded-lg border px-3 py-3"
+        />
+
+      </div>
+
+      <textarea
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="비고"
+        className="min-h-28 w-full rounded-lg border px-3 py-3"
+      />
+
+      <button
+        className="w-full rounded-xl bg-[#B5121B] py-3 font-semibold text-white"
+      >
+        <Plus className="mr-2 inline h-4 w-4" />
+        판촉물 등록
+      </button>
+
+    </div>
+
+  </div>
+
+</form>
       </section>
 
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
