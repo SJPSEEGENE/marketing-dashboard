@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Home, LogOut, Pencil, Search, Trash2 } from 'lucide-react';
 import { AdminForm } from '@/components/AdminForm';
 import { CategoryManager } from '@/components/CategoryManager';
+import { PromotionalItemManager } from '@/components/PromotionalItemManager';
 import { isAdminLoggedIn, logoutAdmin } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { STORAGE_BUCKET } from '@/lib/constants';
@@ -158,6 +159,7 @@ export default function AdminPage() {
         <div className="space-y-6">
           <AdminForm onSaved={load} />
           <CategoryManager />
+          <PromotionalItemManager />
         </div>
 
         <div className="rounded-2xl border bg-white p-5 shadow-sm">

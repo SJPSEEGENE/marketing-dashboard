@@ -37,6 +37,8 @@ export function AdminForm({
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [detailFiles, setDetailFiles] = useState<File[]>([]);
   const [fileLabels, setFileLabels] = useState<string[]>([]);
+  const [fileStocks, setFileStocks] = useState<string[]>([]);
+  const [fileUnits, setFileUnits] = useState<string[]>([]);
   const [existingFiles, setExistingFiles] = useState<any[]>(initialDetailFiles);
 
   const [loading, setLoading] = useState(false);
@@ -76,11 +78,19 @@ export function AdminForm({
 
     setFileLabels((prev) => {
       const next = [...prev];
+      while (next.length < nextFiles.length) next.push('기타');
+      return next.slice(0, nextFiles.length);
+    });
 
-      while (next.length < nextFiles.length) {
-        next.push('기타');
-      }
+    setFileStocks((prev) => {
+      const next = [...prev];
+      while (next.length < nextFiles.length) next.push('0');
+      return next.slice(0, nextFiles.length);
+    });
 
+    setFileUnits((prev) => {
+      const next = [...prev];
+      while (next.length < nextFiles.length) next.push('부');
       return next.slice(0, nextFiles.length);
     });
   }
@@ -88,6 +98,8 @@ export function AdminForm({
   function removeDetailFile(index: number) {
     setDetailFiles((prev) => prev.filter((_, i) => i !== index));
     setFileLabels((prev) => prev.filter((_, i) => i !== index));
+    setFileStocks((prev) => prev.filter((_, i) => i !== index));
+    setFileUnits((prev) => prev.filter((_, i) => i !== index));
   }
 
   function moveDetailFile(index: number, direction: 'up' | 'down') {
@@ -100,8 +112,16 @@ export function AdminForm({
     const newLabels = [...fileLabels];
     [newLabels[index], newLabels[targetIndex]] = [newLabels[targetIndex], newLabels[index]];
 
+    const newStocks = [...fileStocks];
+    [newStocks[index], newStocks[targetIndex]] = [newStocks[targetIndex], newStocks[index]];
+
+    const newUnits = [...fileUnits];
+    [newUnits[index], newUnits[targetIndex]] = [newUnits[targetIndex], newUnits[index]];
+
     setDetailFiles(newFiles);
     setFileLabels(newLabels);
+    setFileStocks(newStocks);
+    setFileUnits(newUnits);
   }
 
   function moveExistingFile(index: number, direction: 'up' | 'down') {
@@ -111,6 +131,46 @@ export function AdminForm({
     const next = [...existingFiles];
     [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
     setExistingFiles(next);
+  }
+
+  async function updateExistingFileStock(file: any, value: string) {
+    const nextStock = Number(value) || 0;
+
+    const { error } = await supabase
+      .from('marketing_tool_files')
+      .update({ stock_quantity: nextStock })
+      .eq('id', file.id);
+
+    if (error) {
+      console.error(error);
+      toast.error('재고 수정 중 오류가 발생했습니다.');
+      return;
+    }
+
+    setExistingFiles((prev) =>
+      prev.map((item) =>
+        item.id === file.id ? { ...item, stock_quantity: nextStock } : item
+      )
+    );
+  }
+
+  async function updateExistingFileUnit(file: any, value: string) {
+    const { error } = await supabase
+      .from('marketing_tool_files')
+      .update({ stock_unit: value || '부' })
+      .eq('id', file.id);
+
+    if (error) {
+      console.error(error);
+      toast.error('단위 수정 중 오류가 발생했습니다.');
+      return;
+    }
+
+    setExistingFiles((prev) =>
+      prev.map((item) =>
+        item.id === file.id ? { ...item, stock_unit: value || '부' } : item
+      )
+    );
   }
 
   async function removeExistingFile(fileId: string) {
@@ -302,7 +362,10 @@ export function AdminForm({
             file_url: uploaded.url,
             file_type: uploaded.type,
             sort_order: currentCount + i + 1,
-            file_label: category === '검사홍보' ? fileLabels[i] || '기타' : null
+            file_label: category === '검사홍보' ? fileLabels[i] || '기타' : null,
+            stock_quantity: category === '검사홍보' ? Number(fileStocks[i]) || 0 : 0,
+            stock_unit: category === '검사홍보' ? fileUnits[i] || '부' : null,
+            stock_note: null
           });
         }
 
@@ -322,6 +385,8 @@ export function AdminForm({
         setThumbnailFile(null);
         setDetailFiles([]);
         setFileLabels([]);
+        setFileStocks([]);
+        setFileUnits([]);
 
         if (categories.length > 0) {
           setCategory(categories[0].name);
@@ -434,6 +499,25 @@ export function AdminForm({
                   <p className="truncate text-xs text-slate-500">
                     {file.file_name}
                   </p>
+
+                  {category === '검사홍보' && (
+                    <div className="mt-2 grid grid-cols-[1fr_70px] gap-2">
+                      <input
+                        type="number"
+                        value={file.stock_quantity || 0}
+                        onChange={(e) => updateExistingFileStock(file, e.target.value)}
+                        className="rounded border px-2 py-1 text-xs"
+                        placeholder="재고"
+                      />
+
+                      <input
+                        value={file.stock_unit || '부'}
+                        onChange={(e) => updateExistingFileUnit(file, e.target.value)}
+                        className="rounded border px-2 py-1 text-xs"
+                        placeholder="단위"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex shrink-0 gap-2">
@@ -468,7 +552,7 @@ export function AdminForm({
           </div>
 
           <p className="text-xs text-slate-500">
-            순서를 변경한 뒤 아래의 수정 저장 버튼을 누르면 반영됩니다.
+            순서 또는 재고를 변경한 뒤 아래의 수정 저장 버튼을 누르면 반영됩니다.
           </p>
         </div>
       )}
@@ -516,21 +600,48 @@ export function AdminForm({
                     </p>
 
                     {category === '검사홍보' && (
-                      <select
-                        value={fileLabels[index] || '기타'}
-                        onChange={(e) => {
-                          const next = [...fileLabels];
-                          next[index] = e.target.value;
-                          setFileLabels(next);
-                        }}
-                        className="mt-2 w-full rounded border px-2 py-1 text-xs"
-                      >
-                        {PROMOTION_TYPES.map((type) => (
-                          <option key={type} value={type}>
-                            {type}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="mt-2 space-y-2">
+                        <select
+                          value={fileLabels[index] || '기타'}
+                          onChange={(e) => {
+                            const next = [...fileLabels];
+                            next[index] = e.target.value;
+                            setFileLabels(next);
+                          }}
+                          className="w-full rounded border px-2 py-1 text-xs"
+                        >
+                          {PROMOTION_TYPES.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </select>
+
+                        <div className="grid grid-cols-[1fr_70px] gap-2">
+                          <input
+                            type="number"
+                            value={fileStocks[index] || '0'}
+                            onChange={(e) => {
+                              const next = [...fileStocks];
+                              next[index] = e.target.value;
+                              setFileStocks(next);
+                            }}
+                            className="rounded border px-2 py-1 text-xs"
+                            placeholder="재고"
+                          />
+
+                          <input
+                            value={fileUnits[index] || '부'}
+                            onChange={(e) => {
+                              const next = [...fileUnits];
+                              next[index] = e.target.value;
+                              setFileUnits(next);
+                            }}
+                            className="rounded border px-2 py-1 text-xs"
+                            placeholder="단위"
+                          />
+                        </div>
+                      </div>
                     )}
                   </div>
 
@@ -569,6 +680,7 @@ export function AdminForm({
         <p>- 자료 제목, 대표 이미지, 세부 자료 1개 이상 필수</p>
         <p>- 세부 자료는 최대 5개까지 등록 가능</p>
         <p>- 동일한 자료 제목은 중복 등록할 수 없음</p>
+        <p>- 검사홍보 자료는 세부 자료별 재고 수량을 입력할 수 있음</p>
       </div>
 
       <button

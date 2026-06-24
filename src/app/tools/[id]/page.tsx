@@ -154,6 +154,12 @@ export default function ToolDetailPage() {
                     <p className="truncate text-[11px] text-gray-500">
                       {file.file_name}
                     </p>
+{tool.category === '검사홍보' && (
+  <p className="mt-1 text-[11px] font-semibold text-[#B5121B]">
+    재고 {file.stock_quantity || 0}
+    {file.stock_unit || '부'}
+  </p>
+)}
 
                     <button
                       type="button"
